@@ -1,18 +1,39 @@
-# OCR script for automatic card detection
-
 import cv2
 import pytesseract
+import numpy as np
+import requests
 
-# Load the image
-image_path = 'path_to_card_image.jpg'
-image = cv2.imread(image_path)
+# Define fixed region (x, y, w, h) for stake.com table (update as needed)
+CARD_REGION = (100, 200, 800, 300)  # Example values, adjust for your setup
 
-# Convert the image to gray scale
-gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def grab_screen(region):
+    from PIL import ImageGrab
+    img = ImageGrab.grab(bbox=region)
+    return cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
 
-# Use pytesseract to do OCR on the image
-custom_config = r'--oem 3 --psm 6'
-text = pytesseract.image_to_string(gray_image, config=custom_config)
+def extract_cards(image):
+    # Preprocess image for OCR
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY_INV)
+    text = pytesseract.image_to_string(thresh)
+    # Simple card parsing logic
+    cards = [t.strip() for t in text.split() if t.strip()]
+    return cards
 
-# Print the detected text
-print(text)
+def send_table_state(cards):
+    payload = {
+        "players": [
+            {"name": "Player 1", "cards": cards, "is_you": True},
+        ],
+        "dealer": {"name": "Dealer", "cards": [], "is_you": False},
+        "mode": "automatic"
+    }
+    res = requests.post("http://localhost:8000/statistics", json=payload)
+    print(res.json())
+
+if __name__ == "__main__":
+    print("Capturing screen region for cards...")
+    img = grab_screen(CARD_REGION)
+    cards = extract_cards(img)
+    print("Detected cards:", cards)
+    send_table_state(cards)
