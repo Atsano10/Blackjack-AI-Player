@@ -1,0 +1,22 @@
+.App {
+  text-align: center;
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+.mode-selector, .game-board, .statistics {
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 320px;
+  background: #fafafa;
+}
+
+.cards-placeholder {
+  margin: 20px 0;
+  padding: 30px;
+  background: #f0f0f0;
+  border-radius: 8px;
+  color: #666;
+}
